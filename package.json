@@ -1,0 +1,23 @@
+{
+  "name": "mvg-less-svg",
+  "version": "0.0.0",
+  "description": "",
+  "main": "index.js",
+  "private": true,
+  "scripts": {
+    "start": "node ./bin/server"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/TheBeeTeam/mvg-less-svg.git"
+  },
+  "author": "TheBeeTeam",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/TheBeeTeam/mvg-less-svg/issues"
+  },
+  "homepage": "https://github.com/TheBeeTeam/mvg-less-svg#readme",
+  "dependencies": {
+    "express": "^4.14.0"
+  }
+}
