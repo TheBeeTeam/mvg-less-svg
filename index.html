@@ -120,7 +120,7 @@
                 return inside;
             }
 
-            function update(i) {
+            function update(i, bikeTakenData) {
                 console.log("[update] Fired");
                 // console.log("[Update] ", i, bikeTakenData);
                 var coord;
@@ -136,26 +136,26 @@
 
                 console.log(projection, bikeTakenData);
 
-                // svg.append('g')
-                //     .attr('id', 'circles')
-                //   .selectAll("circle")
-                //     .data(bikeTakenData[i])
-                //     .enter()
-                //     .append('circle')
-                //     .attr('cx', function(d) {
-                //         // console.log(d);
-                //         return projection(d.coords)[0];
-                //         // coord = projection([d.lng, d.lat]);
-                //         // return coord[0];
-                //     })
-                //     .attr('cy', function(d) {
-                //         return projection(d.coords)[1];
-                //         // coord = projection([d.lng, d.lat]);
-                //         // return coord[1];
-                //     })
-                //     .attr('r', '5')
-                //     .attr('fill', "#333")
-                //     .attr('opacity', 1);
+                svg.append('g')
+                    .attr('id', 'circles')
+                  .selectAll("circle")
+                    .data(bikeTakenData[i])
+                    .enter()
+                    .append('circle')
+                    .attr('cx', function(d) {
+                        // console.log(d);
+                        return projection(d.coords)[0];
+                        // coord = projection([d.lng, d.lat]);
+                        // return coord[0];
+                    })
+                    .attr('cy', function(d) {
+                        return projection(d.coords)[1];
+                        // coord = projection([d.lng, d.lat]);
+                        // return coord[1];
+                    })
+                    .attr('r', '5')
+                    .attr('fill', "#333")
+                    .attr('opacity', 1);
 
                 // svg.selectAll('g.boundary path').attr('fill', "#f0f");
             }
@@ -167,6 +167,8 @@
                 d3.promise.json("./bikes/filtered/" + day + ".json").then(function (bikeTakenData) {
                     // Server side filtering
                     // bikeTakenData = timeslots;
+
+                    console.log("[updateDay] Start", bikeTakenData);
 
                     var pointQueue = [];
                     bikeTakenData.forEach(function (bikesTaken) {
@@ -195,15 +197,16 @@
                         return boundaryHits[i];
                     });
 
-                    update(0);
+                    $("#time").on('input', function (event) {
+                        console.log("[Time changed]", bikeTakenData);
+                        update(this.value, bikeTakenData);
+                    });
+
+                    update(0, bikeTakenData);
                     $("#time").val(0);
                 })
                 //
             }
-
-            $("#time").on('input', function (event) {
-                update(this.value);
-            });
 
             d3.promise.json("muc.json").then(function(raw) {
 
@@ -240,7 +243,13 @@
                         return d.properties.name.slice(12).slice(0,2);
                     });
             })
-            .then(updateDay('2016_06_27'));
+            .then(function () {
+                updateDay('2016_06_27')
+                $("#SelectedDate").on('change', function (value) {
+                    console.log("[Date changed]", value)
+                    updateDay($(this).val());
+                })
+            });
 
 
             </script>
