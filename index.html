@@ -7,21 +7,47 @@
         <script src="https://code.jquery.com/jquery-3.1.1.min.js"></script>
         <script src="d3.promise.js"></script>
         <script src="q.js"></script>
-
-        <style>
-            path.disctrict {
-                stroke: #777;
-                stroke-width: 2px;
-            }
-        </style>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.3/js/select2.min.js"></script>
+        <link href="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.3/css/select2.min.css" rel="stylesheet" />
+        <link rel="stylesheet" type="text/css" href="./css/normalize.css">
+        <link rel="stylesheet" type="text/css" href="./css/main.css">
     </head>
     <body>
-        <h1 style="text-align: center;">Bikes picked up at: <span id="SelectedTime">00:00</span> on the 27<sup>th</sup> of June, 2016</h1>
-        <input type="range" min="0" max="46" step="1" id="time" value="0" style="width:98%; box-sizing:border-box;" />
+        <div class="page-heading">Bikes picked up at: <span id="SelectedTime">00:00</span> on the <select id="SelectedDate"></select></div>
+        <div class="svgContainer" id="svgTimeContainer"></div>
+        <input type="range" min="0" max="46" step="1" id="time" value="0" />
+        <div class="svgContainer" id="svgGraphContainer"></div>
 
         <script>
-            var width = window.innerWidth-40,
-                height = window.innerHeight-120,
+
+            var timeContainer = $("#svgTimeContainer");
+
+            // Select
+            var selectData = [
+            {
+                id: '2016_06_27',
+                text: '27. June 2016'
+            },
+            {
+                id: '2016_06_28',
+                text: '28. June 2016'
+            },
+            {
+                id: '2016_06_29',
+                text: '29. June 2016'
+            },
+            {
+                id: '2016_06_30',
+                text: '30. June 2016'
+            },
+            {
+                id: '2016_07_01',
+                text: '01. July 2016'
+            }];
+            $('#SelectedDate').select2({data: selectData});
+
+            var width = timeContainer.width(),
+                height = window.innerHeight-240,
                 projection,
                 sates,
                 path,
@@ -30,9 +56,39 @@
                 bikeData,
                 bikeTakenData = new Array(48);
 
-            var svg = d3.select("body").append("svg")
+            // TimeScale
+
+            var timeScaleHeight = 100,
+                timeScaleWidth = width,
+                margin = {
+                left: 50,
+                top:10,
+                bottom: 10,
+                right: 50
+            };
+
+            var svg = d3.select("#svgGraphContainer").append("svg")
                 .attr("width", width)
                 .attr("height", height);
+
+            var x = d3.time.scale()
+                .domain([new Date, new Date])
+                .nice(d3.time.hour, 23.5)
+                .range([0, width]);
+
+            var timeSvg = d3.select("#svgTimeContainer").append("svg")
+                .attr("width", timeScaleWidth)
+                .attr("height", timeScaleHeight)
+                .attr("preserveAspectRatio", "xMaxYMin meet")
+                // .attr("width", width + margin.left + margin.right)
+                // .attr("height", height + margin.top + margin.bottom)
+              .append("g")
+                // .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+                .attr("transform", "translate(" + 0 + "," + 70 + ")");
+
+            timeSvg.append("g")
+                .attr("class", "x axis")
+                .call(d3.svg.axis().scale(x).orient("bottom"));
 
             function arraysEqual(arr1, arr2) {
                 if(arr1.length !== arr2.length)
@@ -65,6 +121,7 @@
             }
 
             function update(i) {
+                console.log("[update] Fired");
                 // console.log("[Update] ", i, bikeTakenData);
                 var coord;
 
@@ -77,35 +134,78 @@
 
                 svg.selectAll("#circles").remove();
 
-                svg.append('g')
-                    .attr('id', 'circles')
-                  .selectAll("circle")
-                    .data(bikeTakenData[i])
-                    .enter()
-                    .append('circle')
-                    .attr('cx', function(d) {
-                        // console.log(d);
-                        return projection(d.coords)[0];
-                        // coord = projection([d.lng, d.lat]);
-                        // return coord[0];
-                    })
-                    .attr('cy', function(d) {
-                        return projection(d.coords)[1];
-                        // coord = projection([d.lng, d.lat]);
-                        // return coord[1];
-                    })
-                    .attr('r', '5')
-                    .attr('fill', "#333")
-                    .attr('opacity', 1);
+                console.log(projection, bikeTakenData);
+
+                // svg.append('g')
+                //     .attr('id', 'circles')
+                //   .selectAll("circle")
+                //     .data(bikeTakenData[i])
+                //     .enter()
+                //     .append('circle')
+                //     .attr('cx', function(d) {
+                //         // console.log(d);
+                //         return projection(d.coords)[0];
+                //         // coord = projection([d.lng, d.lat]);
+                //         // return coord[0];
+                //     })
+                //     .attr('cy', function(d) {
+                //         return projection(d.coords)[1];
+                //         // coord = projection([d.lng, d.lat]);
+                //         // return coord[1];
+                //     })
+                //     .attr('r', '5')
+                //     .attr('fill', "#333")
+                //     .attr('opacity', 1);
 
                 // svg.selectAll('g.boundary path').attr('fill', "#f0f");
+            }
+
+            function updateDay(day) {
+                console.log("[updateDay] Fired");
+            // d3.promise.json("http://mvglessserver.azurewebsites.net/bikes/month/6/day/30")
+            // http://mvglessserver.azurewebsites.net/bikes/month/7/day/2
+                d3.promise.json("./bikes/filtered/" + day + ".json").then(function (bikeTakenData) {
+                    // Server side filtering
+                    // bikeTakenData = timeslots;
+
+                    var pointQueue = [];
+                    bikeTakenData.forEach(function (bikesTaken) {
+                        bikesTaken.forEach(function (bike) {
+                            pointQueue.push(bike);
+                        });
+                    })
+                    var color = d3.scale.linear().domain([0,100]).range(['white', 'green']);
+
+                    var boundaryHits = [];
+
+                    svg.selectAll('g.boundary path').attr('fill', function(d,i) {
+                        boundaryHits[i] = 0;
+                        // console.log(i, pointQueue.length);
+                        pointQueue.forEach(function (point, myIndex) {
+
+                            var test = pointInPolygon(point.coords, d.geometry.coordinates[0]);
+                            if (test) {
+                                boundaryHits[i]++;
+                                // console.log(i, test);
+                                pointQueue.splice(myIndex, 1);
+                            }
+                        });
+                        return color(boundaryHits[i]+2);
+                    }).attr('data-hits', function (d, i) {
+                        return boundaryHits[i];
+                    });
+
+                    update(0);
+                    $("#time").val(0);
+                })
+                //
             }
 
             $("#time").on('input', function (event) {
                 update(this.value);
             });
 
-            Q.all([d3.promise.json("muc.json").then(function(raw) {
+            d3.promise.json("muc.json").then(function(raw) {
 
                 states = topojson.feature(raw, raw.objects.states);
 
@@ -139,61 +239,8 @@
                     .attr('data-district-nr', function (d, i) {
                         return d.properties.name.slice(12).slice(0,2);
                     });
-            }),
-            d3.promise.json("data.json")
-            ]).then(function (value) {
-                timeslots = value[1];
-
-                timeslots.forEach(function (element, myIndex, array) {
-                    if (myIndex === array.length-1) {
-                        bikeTakenData[array.length-1] = [];
-                        return;
-                    }
-
-                    bikeTakenData[myIndex] = [];
-
-                    element.forEach(function (place, myElementIndex) {
-
-                        var nextIterBikes = array[myIndex+1].filter(function(elem) {
-                            return elem.id === place.id;
-                        });
-
-                        if (!nextIterBikes.length) {
-                            bikeTakenData[myIndex].push(place);
-                        }
-                    });
-                });
-
-                var pointQueue = [];
-                bikeTakenData.forEach(function (bikesTaken) {
-                    bikesTaken.forEach(function (bike) {
-                        pointQueue.push(bike);
-                    });
-                })
-                var color = d3.scale.linear().domain([0,100]).range(['white', 'green']);
-
-                var boundaryHits = [];
-
-                svg.selectAll('g.boundary path').attr('fill', function(d,i) {
-                    boundaryHits[i] = 0;
-                    // console.log(i, pointQueue.length);
-                    pointQueue.forEach(function (point, myIndex) {
-
-                        var test = pointInPolygon(point.coords, d.geometry.coordinates[0]);
-                        if (test) {
-                            boundaryHits[i]++;
-                            // console.log(i, test);
-                            pointQueue.splice(myIndex, 1);
-                        }
-                    });
-                    return color(boundaryHits[i]+2);
-                }).attr('data-hits', function (d, i) {
-                    return boundaryHits[i];
-                });
-
-                update(0);
-                $("#time").val(0);
-            });
+            })
+            .then(updateDay('2016_06_27'));
 
 
             </script>
