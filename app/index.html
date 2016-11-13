@@ -38,10 +38,6 @@
                 text: '29. June 2016'
             },
             {
-                id: '2016_06_30',
-                text: '30. June 2016'
-            },
-            {
                 id: '2016_07_01',
                 text: '01. July 2016'
             }];
@@ -73,8 +69,8 @@
                 .attr("height", height);
 
             var x = d3.time.scale()
-                .domain([new Date, new Date])
-                .nice(d3.time.hour, 23.5)
+                .domain([new Date("July 27, 2016 00:00:00"), new Date("July 27, 2016 23:30:00")])
+                .nice(d3.time.hour, 30)
                 .range([0, width]);
 
             var timeSvg = d3.select("#svgTimeContainer").append("svg")
@@ -163,9 +159,14 @@
 
             function updateDay(day) {
                 // console.log("[updateDay] Fired");
-            // d3.promise.json("http://mvglessserver.azurewebsites.net/bikes/month/6/day/30")
+            // d3.promise.json("http://mvglessserver.azurewebsites.net/bikes/month/6/day/30/filtered")
             // http://mvglessserver.azurewebsites.net/bikes/month/7/day/2
-                d3.promise.json("./bikes/filtered/" + day + ".json").then(function (bikeTakenData) {
+                d3.promise.json("./bikes/filtered/" + day + ".json")
+                // var dayStr = parseInt(day.substring(8,10));
+                // var monthStr = parseInt(day.substring(5,7));
+                // console.log(dayStr, monthStr);
+                // d3.promise.json("http://mvglessserver.azurewebsites.net/bikes/month/"+monthStr+"/day/"+dayStr+"/filtered")
+                .then(function (bikeTakenData) {
                     // Server side filtering
                     // bikeTakenData = timeslots;
 
