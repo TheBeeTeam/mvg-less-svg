@@ -14,7 +14,9 @@
     <body>
         <div class="page-heading">Bikes picked up at: <span id="SelectedTime">00:00</span> on the <select id="SelectedDate"></select></div>
         <div class="svgContainer" id="svgTimeContainer"></div>
-        <input type="range" min="0" max="46" step="1" id="time" value="0" />
+        <div class="rangeContainer">
+            <input type="range" min="0" max="46" step="1" id="time" value="0" />
+        </div>
         <div class="svgContainer" id="svgGraphContainer"></div>
 
         <script>
@@ -76,14 +78,14 @@
                 .range([0, width]);
 
             var timeSvg = d3.select("#svgTimeContainer").append("svg")
-                .attr("width", timeScaleWidth)
+                .attr("width", (timeScaleWidth*0.9))
                 .attr("height", timeScaleHeight)
                 .attr("preserveAspectRatio", "xMaxYMin meet")
                 // .attr("width", width + margin.left + margin.right)
                 // .attr("height", height + margin.top + margin.bottom)
               .append("g")
                 // .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
-                .attr("transform", "translate(" + 0 + "," + 70 + ")");
+                .attr("transform", "translate(" + (timeScaleWidth*0.1) + "," + 70 + ")");
 
             timeSvg.append("g")
                 .attr("class", "x axis")
@@ -120,7 +122,7 @@
             }
 
             function update(i, bikeTakenData) {
-                console.log("[update] Fired");
+                // console.log("[update] Fired");
                 // console.log("[Update] ", i, bikeTakenData);
                 var coord;
 
@@ -133,7 +135,7 @@
 
                 svg.selectAll("#circles").remove();
 
-                console.log(projection, bikeTakenData);
+                // console.log(projection, bikeTakenData);
 
                 svg.append('g')
                     .attr('id', 'circles')
@@ -160,14 +162,14 @@
             }
 
             function updateDay(day) {
-                console.log("[updateDay] Fired");
+                // console.log("[updateDay] Fired");
             // d3.promise.json("http://mvglessserver.azurewebsites.net/bikes/month/6/day/30")
             // http://mvglessserver.azurewebsites.net/bikes/month/7/day/2
                 d3.promise.json("./bikes/filtered/" + day + ".json").then(function (bikeTakenData) {
                     // Server side filtering
                     // bikeTakenData = timeslots;
 
-                    console.log("[updateDay] Start", bikeTakenData);
+                    // console.log("[updateDay] Start", bikeTakenData);
 
                     var pointQueue = [];
                     bikeTakenData.forEach(function (bikesTaken) {
@@ -197,7 +199,7 @@
                     });
 
                     $("#time").on('input', function (event) {
-                        console.log("[Time changed]", bikeTakenData);
+                        // console.log("[Time changed]", bikeTakenData);
                         update(this.value, bikeTakenData);
                     });
 
@@ -245,7 +247,7 @@
             .then(function () {
                 updateDay('2016_06_27')
                 $("#SelectedDate").on('change', function (value) {
-                    console.log("[Date changed]", value)
+                    // console.log("[Date changed]", value)
                     updateDay($(this).val());
                 })
             });

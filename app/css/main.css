@@ -18,7 +18,7 @@ input[type="range"] {
 }
 
 #svgTimeContainer {
-    background: #ddd;
+    /*background: #ddd;*/
     height: 100px;
 }
 
@@ -26,4 +26,9 @@ input[type="range"] {
     text-align: center;
     font-size: 130%;
     padding-bottom: 10px;
+}
+
+.rangeContainer {
+    padding-left: 10%;
+    padding-right: 10%;
 }
